@@ -1,197 +1,172 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace math8
+namespace LabyrinthAStar
 {
+    public class Node
+    {
+        public int X { get; }
+        public int Y { get; }
+        public int G { get; set; } // стоимость от начальной точки до текущей
+        public int H { get; set; } // эвристическая стоимость (Манхэттенское расстояние)
+        public int F => G + H; // полная стоимость
+
+        public Node Parent { get; set; }
+
+        public Node(int x, int y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
+
     public partial class MainForm : Form
     {
-        private int currentMazeIndex = 0;
-        private int[,,] mazes = new int[3, 10, 10]
-        {
-            { // maze0
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-                { 1, 1, 1, 0, 1, 0, 1, 1, 0, 1 },
-                { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
-                { 1, 0, 1, 0, 1, 1, 1, 1, 0, 1 },
-                { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
-                { 1, 0, 1, 0, 0, 0, 1, 1, 1, 1 },
-                { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }
-            },
-            { // maze1 (создаваемый вручную)
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
-            },
-            { // maze2
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 0, 0, 0, 1, 1, 1, 0, 0, 0, 1 },
-                { 1, 1, 0, 0, 1, 0, 1, 1, 0, 1 },
-                { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
-                { 1, 0, 1, 0, 0, 1, 1, 1, 0, 1 },
-                { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
-                { 1, 0, 1, 0, 0, 0, 1, 1, 1, 1 },
-                { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }
-            }
+        private readonly int[,] maze = {
+            { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+            { 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
+            { 1, 1, 1, 0, 1, 0, 1, 1, 0, 1 },
+            { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
+            { 1, 0, 1, 0, 1, 1, 1, 1, 0, 1 },
+            { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
+            { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
+            { 1, 0, 1, 0, 0, 0, 1, 1, 1, 1 },
+            { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
+            { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }
         };
-        private int[,] maze1 = new int[10, 10];
-        //private int[,] maze1 = {
-        //                      { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        //                      { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        //                      { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        //                      { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        //                      { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        //                      { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        //                      { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        //                      { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        //                      { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        //                      { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
-        //                      };
 
-        private int[,] maze0 = {
-                              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                              { 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-                              { 1, 1, 1, 0, 1, 0, 1, 1, 0, 1 },
-                              { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
-                              { 1, 0, 1, 0, 1, 1, 1, 1, 0, 1 },
-                              { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
-                              { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
-                              { 1, 0, 1, 0, 0, 0, 1, 1, 1, 1 },
-                              { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-                              { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }
-                              };
-
-        private int playerX = 0, playerY = 1;
-        private bool editMode = false;
-
-        private (int x, int y, int Maze, int targetX, int targetY, int targetMaze)[] teleporters = {
-            (8, 9, 0, 1, 1, 1),  // Телепорт из maze0 в maze1
-            (8, 8, 1, 0, 1, 2),  // Телепорт из maze1 в maze2
-            (6, 1, 2, 0, 1, 0)   // Телепорт из maze2 в maze0
-        };
+        private readonly List<Node> path = new List<Node>();
+        private Node startNode;
+        private Node endNode;
+        private int cellSize = 40;
 
         public MainForm()
         {
             //InitializeComponent();
             this.DoubleBuffered = true;
-            this.KeyDown += new KeyEventHandler(OnKeyDown);
-            this.Paint += new PaintEventHandler(OnPaint);
-            this.Width = 450;
-            this.Height = 450;
-            //pathMap = new Bitmap(400, 400);
-            //pathForm = new PathForm(pathMap);
-            //pathForm.Show();
+            this.Width = maze.GetLength(1) * cellSize + 20;
+            this.Height = maze.GetLength(0) * cellSize + 40;
+
+            startNode = new Node(0, 1);
+            endNode = new Node(8, 9);
+
+            path.AddRange(FindPath(startNode, endNode));
+            this.Paint += MainForm_Paint;
         }
-        private void OnKeyDown(object sender, KeyEventArgs e)
-        {
-            int newX = playerX;
-            int newY = playerY;
 
-            if (e.KeyCode == Keys.Q)
-            {
-                editMode = !editMode;
-
-                if (!editMode)
-                {
-                    Array.Copy(maze1, maze0, maze1.Length);
-                }
-
-                playerX = 0;
-                playerY = 1;
-                Invalidate();
-                return;
-            }
-
-            switch (e.KeyCode)
-            {
-                case Keys.Up: newY--; break;
-                case Keys.Down: newY++; break;
-                case Keys.Left: newX--; break;
-                case Keys.Right: newX++; break;
-                case Keys.Enter:
-                    if (editMode && mazes[currentMazeIndex, playerY, playerX] == 0)
-                        mazes[currentMazeIndex, playerY, playerX] = 1;
-                    break;
-            }
-            if (newX >= 0 && newX < mazes.GetLength(2) && newY >= 0 && newY <
-           mazes.GetLength(1))
-            {
-                if (editMode || (!editMode && mazes[currentMazeIndex, newY, newX] == 0)) {
-                    playerX = newX;
-                    playerY = newY;
-                }
-                //using (Graphics g = Graphics.FromImage(pathMap))
-                //{
-                //    g.FillRectangle(Brushes.Red, playerX * 40, playerY * 40, 40, 40);
-                //}
-                
-                //pathForm.Invalidate();
-            }
-            CheckTeleport();
-            Invalidate();
-        }
-        private void CheckTeleport()
-        {
-            foreach (var teleporter in teleporters)
-            {
-                if (teleporter.x == playerX && teleporter.y == playerY && currentMazeIndex == teleporter.Maze)
-                {
-                    playerX = teleporter.targetX;
-                    playerY = teleporter.targetY;
-                    currentMazeIndex = teleporter.targetMaze;
-                    break;
-                }
-            }
-        }
-        private void OnPaint(object sender, PaintEventArgs e)
+        private void MainForm_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            int cellSize = 40;
-            //var maze = editMode ? maze1 : maze0;
 
-            for (int y = 0; y < mazes.GetLength(1); y++)
+            // Отрисовка лабиринта
+            for (int y = 0; y < maze.GetLength(0); y++)
             {
-                for (int x = 0; x < mazes.GetLength(2); x++)
+                for (int x = 0; x < maze.GetLength(1); x++)
                 {
-                    if (mazes[currentMazeIndex, y, x] == 1)
-                    {
-                        g.FillRectangle(Brushes.Black, x * cellSize, y * cellSize,
-                       cellSize, cellSize);
-                    }
+                    if (maze[y, x] == 1)
+                        g.FillRectangle(Brushes.Black, x * cellSize, y * cellSize, cellSize, cellSize);
                     else
-                    {
-                        g.FillRectangle(Brushes.White, x * cellSize, y * cellSize,
-                       cellSize, cellSize);
-                    }
-                    if (x == playerX && y == playerY)
-                    {
-                        g.FillRectangle(Brushes.Blue, x * cellSize, y * cellSize,
-                       cellSize, cellSize);
-                    }
-                    foreach (var teleporter in teleporters)
-                    {
-                        if (teleporter.x == x && teleporter.y == y && currentMazeIndex == teleporter.Maze)
-                            g.FillRectangle(Brushes.Purple, x * cellSize, y * cellSize, cellSize, cellSize);
-                    }
+                        g.FillRectangle(Brushes.White, x * cellSize, y * cellSize, cellSize, cellSize);
                 }
             }
+
+            // Отрисовка пути
+            foreach (var node in path)
+            {
+                g.FillRectangle(Brushes.LightBlue, node.X * cellSize, node.Y * cellSize, cellSize, cellSize);
+            }
+
+            // Начальная и конечная точки
+            g.FillRectangle(Brushes.Green, startNode.X * cellSize, startNode.Y * cellSize, cellSize, cellSize);
+            g.FillRectangle(Brushes.Red, endNode.X * cellSize, endNode.Y * cellSize, cellSize, cellSize);
         }
+
+        private List<Node> FindPath(Node start, Node end)
+        {
+            var openList = new List<Node>();
+            var closedList = new HashSet<Node>();
+
+            openList.Add(start);
+
+            while (openList.Count > 0)
+            {
+                // Находим узел с наименьшей стоимостью F
+                openList.Sort((node1, node2) => node1.F.CompareTo(node2.F));
+                var currentNode = openList[0];
+
+                // Если достигли цели, восстанавливаем путь
+                if (currentNode.X == end.X && currentNode.Y == end.Y)
+                {
+                    return ReconstructPath(currentNode);
+                }
+
+                openList.Remove(currentNode);
+                closedList.Add(currentNode);
+
+                // Получаем соседей
+                foreach (var neighbor in GetNeighbors(currentNode))
+                {
+                    if (closedList.Contains(neighbor) || maze[neighbor.Y, neighbor.X] == 1)
+                        continue;
+
+                    int tentativeGScore = currentNode.G + 1;
+
+                    if (!openList.Contains(neighbor))
+                    {
+                        openList.Add(neighbor);
+                    }
+                    else if (tentativeGScore >= neighbor.G)
+                    {
+                        continue;
+                    }
+
+                    // Обновляем данные узла
+                    neighbor.Parent = currentNode;
+                    neighbor.G = tentativeGScore;
+                    neighbor.H = Math.Abs(neighbor.X - end.X) + Math.Abs(neighbor.Y - end.Y);
+                }
+            }
+
+            return new List<Node>(); // Путь не найден
+        }
+
+        private List<Node> ReconstructPath(Node node)
+        {
+            var path = new List<Node>();
+            while (node != null)
+            {
+                path.Add(node);
+                node = node.Parent;
+            }
+            path.Reverse();
+            return path;
+        }
+
+        private IEnumerable<Node> GetNeighbors(Node node)
+        {
+            var neighbors = new List<Node>();
+            var directions = new (int dx, int dy)[] { (1, 0), (0, 1), (-1, 0), (0, -1) };
+
+            foreach (var (dx, dy) in directions)
+            {
+                int newX = node.X + dx;
+                int newY = node.Y + dy;
+
+                if (newX >= 0 && newX < maze.GetLength(1) && newY >= 0 && newY < maze.GetLength(0))
+                {
+                    neighbors.Add(new Node(newX, newY));
+                }
+            }
+            return neighbors;
+        }
+
         [STAThread]
         public static void Main()
         {
             Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
         }
     }
