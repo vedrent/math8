@@ -37,10 +37,12 @@ namespace LabyrinthAStar
             { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }
         };
 
-        private readonly List<Node> path = new List<Node>();
+        private List<Node> path;
         private Node startNode;
         private Node endNode;
         private int cellSize = 40;
+        private int currentStep = 0;
+        private System.Windows.Forms.Timer moveTimer;
 
         public MainForm()
         {
@@ -52,7 +54,13 @@ namespace LabyrinthAStar
             startNode = new Node(0, 1);
             endNode = new Node(8, 9);
 
-            path.AddRange(FindPath(startNode, endNode));
+            path = FindPath(startNode, endNode);
+
+            moveTimer = new System.Windows.Forms.Timer();
+            moveTimer.Interval = 500; // Интервал перемещения (мс)
+            moveTimer.Tick += MoveAlongPath;
+            moveTimer.Start();
+
             this.Paint += MainForm_Paint;
         }
 
@@ -78,9 +86,29 @@ namespace LabyrinthAStar
                 g.FillRectangle(Brushes.LightBlue, node.X * cellSize, node.Y * cellSize, cellSize, cellSize);
             }
 
+            if (currentStep < path.Count)
+            {
+                var currentNode = path[currentStep];
+                g.FillRectangle(Brushes.Blue, currentNode.X * cellSize, currentNode.Y * cellSize, cellSize, cellSize);
+            }
+
             // Начальная и конечная точки
             g.FillRectangle(Brushes.Green, startNode.X * cellSize, startNode.Y * cellSize, cellSize, cellSize);
             g.FillRectangle(Brushes.Red, endNode.X * cellSize, endNode.Y * cellSize, cellSize, cellSize);
+        }
+
+        private void MoveAlongPath(object sender, EventArgs e)
+        {
+            // Перемещаем игрока по пути
+            if (currentStep < path.Count - 1)
+            {
+                currentStep++;
+                Invalidate(); // Перерисовываем форму
+            }
+            else
+            {
+                moveTimer.Stop(); // Останавливаем таймер, если достигли конца пути
+            }
         }
 
         private List<Node> FindPath(Node start, Node end)
