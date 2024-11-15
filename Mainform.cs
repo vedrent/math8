@@ -43,12 +43,12 @@ namespace LabyrinthAStar
                 { 1, 1, 1, 1, 3, 1, 0, 1, 1, 1 },
                 { 0, 0, 0, 0, 0, 0, 2, 0, 0, 1 },
                 { 1, 1, 1, 1, 0, 1, 0, 1, 0, 1 },
-                { 1, 0, 0, 0, 1, 1, 1, 1, 0, 1 },
-                { 1, 0, 1, 1, 1, 0, 1, 1, 0, 1 },
-                { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 1, 1, 1, 1, 1, 0, 0, 1 },
-                { 1, 0, 1, 0, 0, 0, 1, 1, 0, 1 },
-                { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 },
+                { 1, 0, 0, 0, 0, 0, 0, 1, 0, 1 },
+                { 1, 0, 0, 0, 0, 0, 0, 1, 0, 1 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
+                { 1, 0, 0, 0, 0, 0, 0, 1, 0, 1 },
+                { 1, 0, 0, 0, 0, 0, 0, 1, 0, 1 },
                 { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
             },
             // maze2
@@ -60,7 +60,7 @@ namespace LabyrinthAStar
                 { 0, 1, 0, 0, 0, 0, 1, 0, 1, 0 },
                 { 0, 1, 0, 1, 1, 0, 1, 0, 1, 0 },
                 { 0, 1, 0, 1, 1, 1, 1, 0, 1, 0 },
-                { 0, 1, 0, 0, 0, 0, 0, 0, 1, 0 },
+                { 0, 1, 2, 0, 0, 0, 0, 0, 1, 0 },
                 { 0, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
                 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
             },
@@ -68,7 +68,7 @@ namespace LabyrinthAStar
 
         private (int x, int y, int Maze, int targetX, int targetY, int targetMaze)[] teleporters = {
             (8, 9, 0, 0, 1, 1),  // Телепорт из maze0 в maze1
-            (8, 8, 1, 0, 0, 2),  // Телепорт из maze1 в maze2
+            (0, 6, 1, 0, 0, 2),  // Телепорт из maze1 в maze2
             (5, 5, 2, 0, 1, 0)   // Телепорт из maze2 в maze0
         };
 
@@ -76,6 +76,8 @@ namespace LabyrinthAStar
         {
             new MovingObstacle(4, 0, 3, 1, false),
             new MovingObstacle(6, 1, 2, 1, false),
+            new MovingObstacle(2, 5, 4, 1, false),
+            new MovingObstacle(5, 5, 4, 1, false),
         };
 
         private List<Node> path;
@@ -129,6 +131,8 @@ namespace LabyrinthAStar
                         g.FillRectangle(Brushes.Orange, x * cellSize, y * cellSize, cellSize, cellSize);
                     else if (mazes[currentLevel, y, x] == 3)
                         g.FillRectangle(Brushes.Green, x * cellSize, y * cellSize, cellSize, cellSize); // Отбрасывающие препятствия
+                    else if (mazes[currentLevel, y, x] == 4)
+                        g.FillRectangle(Brushes.Red, x * cellSize, y * cellSize, cellSize, cellSize);
                     else
                         g.FillRectangle(Brushes.White, x * cellSize, y * cellSize, cellSize, cellSize);
                 }
@@ -165,6 +169,14 @@ namespace LabyrinthAStar
                 var currentNode = path[currentStep];
                 startNode = currentNode;
                 playerPath.Add(new Node(startNode.X, startNode.Y)); // Добавляем текущую позицию в путь игрока
+
+                if (mazes[currentLevel, startNode.Y, startNode.X] == 4)
+                {
+                    playerPath.Clear();
+                    currentNode = new Node(teleporters[currentLevel - 1].targetX, teleporters[currentLevel - 1].targetY);
+                    path = FindPath(currentNode, GetNextTarget());
+                    currentStep = 0;
+                }
 
                 if (mazes[currentLevel, startNode.Y, startNode.X] == 3)
                 {
