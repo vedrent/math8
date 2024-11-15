@@ -40,12 +40,12 @@ namespace LabyrinthAStar
             },
             // maze1
             {
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-                { 1, 1, 1, 0, 1, 0, 1, 1, 0, 1 },
-                { 1, 0, 0, 0, 1, 0, 1, 0, 0, 1 },
-                { 1, 0, 1, 1, 1, 0, 1, 1, 1, 1 },
-                { 1, 0, 1, 0, 0, 0, 0, 0, 1, 1 },
+                { 1, 1, 1, 1, 0, 1, 0, 1, 1, 1 },
+                { 0, 0, 0, 0, 2, 0, 2, 0, 0, 1 },
+                { 1, 1, 1, 1, 0, 1, 0, 1, 0, 1 },
+                { 1, 0, 0, 0, 1, 1, 1, 1, 0, 1 },
+                { 1, 0, 1, 1, 1, 0, 1, 1, 0, 1 },
+                { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
                 { 1, 0, 1, 1, 1, 1, 1, 0, 0, 1 },
                 { 1, 0, 1, 0, 0, 0, 1, 1, 0, 1 },
                 { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
@@ -68,21 +68,14 @@ namespace LabyrinthAStar
 
         private (int x, int y, int Maze, int targetX, int targetY, int targetMaze)[] teleporters = {
             (8, 9, 0, 0, 1, 1),  // Телепорт из maze0 в maze1
-            (7, 3, 1, 0, 0, 2),  // Телепорт из maze1 в maze2
+            (8, 8, 1, 0, 0, 2),  // Телепорт из maze1 в maze2
             (5, 5, 2, 0, 1, 0)   // Телепорт из maze2 в maze0
         };
 
-        private readonly int[,] maze = {
-            { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-            { 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-            { 1, 1, 1, 0, 1, 0, 1, 1, 0, 1 },
-            { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
-            { 1, 0, 1, 0, 1, 1, 1, 1, 0, 1 },
-            { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
-            { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
-            { 1, 0, 1, 0, 0, 0, 1, 1, 1, 1 },
-            { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-            { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }
+        private readonly List<MovingObstacle> movingObstacles = new List<MovingObstacle>
+        {
+            new MovingObstacle(4, 1, 2, 1, false),
+            new MovingObstacle(6, 1, 2, 1, false),
         };
 
         private List<Node> path;
@@ -93,6 +86,7 @@ namespace LabyrinthAStar
         private System.Windows.Forms.Timer moveTimer;
         private int currentLevel = 0;
         private int isSlowed = 0;
+        private System.Windows.Forms.Timer obstacleTimer;
 
         public MainForm()
         {
@@ -100,6 +94,11 @@ namespace LabyrinthAStar
             this.DoubleBuffered = true;
             this.Width = mazes.GetLength(2) * cellSize + 20;
             this.Height = mazes.GetLength(1) * cellSize + 40;
+
+            obstacleTimer = new System.Windows.Forms.Timer();
+            obstacleTimer.Interval = 300; // Интервал обновления (мс)
+            obstacleTimer.Tick += UpdateObstacles;
+            obstacleTimer.Start();
 
             startNode = new Node(0, 1);
             endNode = new Node(teleporters[0].x, teleporters[0].y);
@@ -152,9 +151,6 @@ namespace LabyrinthAStar
                 }
             }
 
-            // Начальная и конечная точки
-            //g.FillRectangle(Brushes.Green, startNode.X * cellSize, startNode.Y * cellSize, cellSize, cellSize);
-            //g.FillRectangle(Brushes.Red, endNode.X * cellSize, endNode.Y * cellSize, cellSize, cellSize);
         }
 
         private void MoveAlongPath(object sender, EventArgs e)
@@ -167,8 +163,11 @@ namespace LabyrinthAStar
 
                 if (mazes[currentLevel, currentNode.Y, currentNode.X] == 2)
                 {
+                    if (isSlowed == 0)
+                    {
+                        moveTimer.Interval = moveTimer.Interval * 3;
+                    }
                     isSlowed = 4;
-                    moveTimer.Interval = moveTimer.Interval * 3;
                 }
 
                 switch (isSlowed)
@@ -291,6 +290,66 @@ namespace LabyrinthAStar
             return neighbors;
         }
 
+        public class MovingObstacle
+        {
+            public int X { get; set; }
+            public int Y { get; set; }
+            public int Type { get; } // Тип препятствия (2 - замедляющее, 3 и 4 - другие)
+            public int Level { get; } // Уровень, на котором находится препятствие
+            public int Direction { get; set; }
+            public bool MovesHorizontally { get; } // Направление движения: true — горизонтально, false — вертикально
+
+            public MovingObstacle(int x, int y, int type, int level, bool movesHorizontally)
+            {
+                X = x;
+                Y = y;
+                Type = type;
+                Level = level;
+                Direction = 1;
+                MovesHorizontally = movesHorizontally;
+            }
+        }
+
+        private void UpdateObstacles(object sender, EventArgs e)
+        {
+            foreach (var obstacle in movingObstacles)
+            {
+                int newX = obstacle.X;
+                int newY = obstacle.Y;
+
+                // Определяем новое положение в зависимости от направления
+                if (obstacle.MovesHorizontally)
+                {
+                    newX += obstacle.Direction;
+                    // Проверяем границы и столкновения со стеной
+                    if (newX < 0 || newX >= mazes.GetLength(2) || mazes[obstacle.Level, obstacle.Y, newX] == 1)
+                    {
+                        obstacle.Direction *= -1;
+                        newX = obstacle.X + obstacle.Direction;
+                    }
+                }
+                else
+                {
+                    newY += obstacle.Direction;
+                    // Проверяем границы и столкновения со стеной
+                    if (newY < 0 || newY >= mazes.GetLength(1) || mazes[obstacle.Level, newY, obstacle.X] == 1)
+                    {
+                        obstacle.Direction *= -1;
+                        newY = obstacle.Y + obstacle.Direction;
+                    }
+                }
+
+                // Обновляем позицию в массиве
+                if (mazes[obstacle.Level, obstacle.Y, obstacle.X] == obstacle.Type)
+                    mazes[obstacle.Level, obstacle.Y, obstacle.X] = 0; // Старая позиция
+
+                obstacle.X = newX;
+                obstacle.Y = newY;
+                mazes[obstacle.Level, newY, newX] = obstacle.Type; // Новая позиция
+            }
+
+            Invalidate(); // Перерисовываем форму
+        }
 
 
         [STAThread]
