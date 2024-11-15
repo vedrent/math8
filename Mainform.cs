@@ -32,7 +32,7 @@ namespace LabyrinthAStar
                 { 1, 1, 1, 0, 1, 0, 1, 1, 0, 1 },
                 { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
                 { 1, 2, 1, 0, 1, 0, 1, 1, 0, 1 },
-                { 1, 0, 1, 0, 0, 0, 1, 0, 0, 1 },
+                { 1, 0, 1, 3, 0, 0, 1, 0, 0, 1 },
                 { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
                 { 1, 0, 1, 0, 0, 0, 1, 0, 1, 1 },
                 { 1, 0, 2, 0, 1, 0, 0, 0, 0, 1 },
@@ -40,8 +40,8 @@ namespace LabyrinthAStar
             },
             // maze1
             {
-                { 1, 1, 1, 1, 0, 1, 0, 1, 1, 1 },
-                { 0, 0, 0, 0, 2, 0, 2, 0, 0, 1 },
+                { 1, 1, 1, 1, 3, 1, 0, 1, 1, 1 },
+                { 0, 0, 0, 0, 0, 0, 2, 0, 0, 1 },
                 { 1, 1, 1, 1, 0, 1, 0, 1, 0, 1 },
                 { 1, 0, 0, 0, 1, 1, 1, 1, 0, 1 },
                 { 1, 0, 1, 1, 1, 0, 1, 1, 0, 1 },
@@ -74,7 +74,7 @@ namespace LabyrinthAStar
 
         private readonly List<MovingObstacle> movingObstacles = new List<MovingObstacle>
         {
-            new MovingObstacle(4, 1, 2, 1, false),
+            new MovingObstacle(4, 0, 3, 1, false),
             new MovingObstacle(6, 1, 2, 1, false),
         };
 
@@ -87,6 +87,7 @@ namespace LabyrinthAStar
         private int currentLevel = 0;
         private int isSlowed = 0;
         private System.Windows.Forms.Timer obstacleTimer;
+        private List<Node> playerPath = new List<Node>();
 
         public MainForm()
         {
@@ -126,6 +127,8 @@ namespace LabyrinthAStar
                         g.FillRectangle(Brushes.Black, x * cellSize, y * cellSize, cellSize, cellSize);
                     else if (mazes[currentLevel, y, x] == 2)
                         g.FillRectangle(Brushes.Orange, x * cellSize, y * cellSize, cellSize, cellSize);
+                    else if (mazes[currentLevel, y, x] == 3)
+                        g.FillRectangle(Brushes.Green, x * cellSize, y * cellSize, cellSize, cellSize); // Отбрасывающие препятствия
                     else
                         g.FillRectangle(Brushes.White, x * cellSize, y * cellSize, cellSize, cellSize);
                 }
@@ -160,6 +163,13 @@ namespace LabyrinthAStar
             {
                 currentStep++;
                 var currentNode = path[currentStep];
+                startNode = currentNode;
+                playerPath.Add(new Node(startNode.X, startNode.Y)); // Добавляем текущую позицию в путь игрока
+
+                if (mazes[currentLevel, startNode.Y, startNode.X] == 3)
+                {
+                    KnockBackPlayer();
+                }
 
                 if (mazes[currentLevel, currentNode.Y, currentNode.X] == 2)
                 {
@@ -188,6 +198,7 @@ namespace LabyrinthAStar
                     currentLevel = teleporters[currentLevel].targetMaze;
                     path = FindPath(currentNode, GetNextTarget());
                     currentStep = 0;
+                    playerPath.Clear();
                 }
                 Invalidate(); // Перерисовываем форму
             }
@@ -349,6 +360,27 @@ namespace LabyrinthAStar
             }
 
             Invalidate(); // Перерисовываем форму
+        }
+
+        private void KnockBackPlayer()
+        {
+            // Проверка, достаточно ли шагов для отбрасывания назад
+            int stepsBack = Math.Min(4, playerPath.Count);
+            if (stepsBack > 0)
+            {
+                // Устанавливаем позицию игрока на три шага назад
+                var backNode = playerPath[playerPath.Count - stepsBack];
+                startNode = backNode;
+
+                // Удаляем последние три шага из пути игрока
+                playerPath.RemoveRange(playerPath.Count - stepsBack, stepsBack);
+
+                path = FindPath(startNode, new Node(teleporters[currentLevel].x, teleporters[currentLevel].y));
+                currentStep = 0;
+
+                // Обновляем отрисовку после отбрасывания
+                Invalidate();
+            }
         }
 
 
