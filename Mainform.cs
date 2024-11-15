@@ -78,6 +78,7 @@ namespace LabyrinthAStar
             new MovingObstacle(6, 1, 2, 1, false),
             new MovingObstacle(2, 5, 4, 1, false),
             new MovingObstacle(5, 5, 4, 1, false),
+            new MovingObstacle(3, 7, 2, 2, true),
         };
 
         private List<Node> path;
