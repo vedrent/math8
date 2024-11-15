@@ -31,11 +31,11 @@ namespace LabyrinthAStar
                 { 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
                 { 1, 1, 1, 0, 1, 0, 1, 1, 0, 1 },
                 { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
-                { 1, 0, 1, 0, 1, 0, 1, 1, 0, 1 },
+                { 1, 2, 1, 0, 1, 0, 1, 1, 0, 1 },
                 { 1, 0, 1, 0, 0, 0, 1, 0, 0, 1 },
                 { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
                 { 1, 0, 1, 0, 0, 0, 1, 0, 1, 1 },
-                { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
+                { 1, 0, 2, 0, 1, 0, 0, 0, 0, 1 },
                 { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }
             },
             // maze1
@@ -92,6 +92,7 @@ namespace LabyrinthAStar
         private int currentStep = 0;
         private System.Windows.Forms.Timer moveTimer;
         private int currentLevel = 0;
+        private int isSlowed = 0;
 
         public MainForm()
         {
@@ -124,16 +125,18 @@ namespace LabyrinthAStar
                 {
                     if (mazes[currentLevel, y, x] == 1)
                         g.FillRectangle(Brushes.Black, x * cellSize, y * cellSize, cellSize, cellSize);
+                    else if (mazes[currentLevel, y, x] == 2)
+                        g.FillRectangle(Brushes.Orange, x * cellSize, y * cellSize, cellSize, cellSize);
                     else
                         g.FillRectangle(Brushes.White, x * cellSize, y * cellSize, cellSize, cellSize);
                 }
             }
 
             // Отрисовка пути
-            foreach (var node in path)
-            {
-                g.FillRectangle(Brushes.LightBlue, node.X * cellSize, node.Y * cellSize, cellSize, cellSize);
-            }
+            //foreach (var node in path)
+            //{
+            //    g.FillRectangle(Brushes.LightBlue, node.X * cellSize, node.Y * cellSize, cellSize, cellSize);
+            //}
 
             if (currentStep < path.Count)
             {
@@ -161,6 +164,24 @@ namespace LabyrinthAStar
             {
                 currentStep++;
                 var currentNode = path[currentStep];
+
+                if (mazes[currentLevel, currentNode.Y, currentNode.X] == 2)
+                {
+                    isSlowed = 4;
+                    moveTimer.Interval = moveTimer.Interval * 3;
+                }
+
+                switch (isSlowed)
+                {
+                    case >1:
+                        isSlowed--;
+                        break;
+                    case 1:
+                        isSlowed--;
+                        moveTimer.Interval = moveTimer.Interval / 3;
+                        break;
+                    case 0: break;
+                }
 
                 if (teleporters[currentLevel].x == currentNode.X && teleporters[currentLevel].y == currentNode.Y)
                 {
@@ -218,7 +239,8 @@ namespace LabyrinthAStar
                     if (closedList.Contains(neighbor) || mazes[currentLevel, neighbor.Y, neighbor.X] == 1)
                         continue;
 
-                    int tentativeGScore = currentNode.G + 1;
+                    int moveCost = (mazes[currentLevel, neighbor.Y, neighbor.X] == 2) ? 3 : 1;
+                    int tentativeGScore = currentNode.G + moveCost;
 
                     if (!openList.Contains(neighbor))
                     {
