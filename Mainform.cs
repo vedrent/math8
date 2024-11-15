@@ -24,46 +24,6 @@ namespace LabyrinthAStar
 
     public partial class MainForm : Form
     {
-        //private int[,,] mazes = new int[3, 10, 10]
-        //{
-        //    { // maze0
-        //        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-        //        { 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-        //        { 1, 1, 1, 0, 1, 0, 1, 1, 0, 1 },
-        //        { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
-        //        { 1, 0, 1, 0, 1, 1, 1, 1, 0, 1 },
-        //        { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
-        //        { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
-        //        { 1, 0, 1, 0, 0, 0, 1, 1, 1, 1 },
-        //        { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-        //        { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }
-        //    },
-        //    { // maze1 (создаваемый вручную)
-        //        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-        //        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        //        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        //        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        //        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        //        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        //        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        //        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        //        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        //        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
-        //    },
-        //    { // maze2
-        //        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-        //        { 0, 0, 0, 1, 1, 1, 0, 0, 0, 1 },
-        //        { 1, 1, 0, 0, 1, 0, 1, 1, 0, 1 },
-        //        { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
-        //        { 1, 0, 1, 0, 0, 1, 1, 1, 0, 1 },
-        //        { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
-        //        { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
-        //        { 1, 0, 1, 0, 0, 0, 1, 1, 1, 1 },
-        //        { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-        //        { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }
-        //    }
-        //};
-
         private readonly int[,,] mazes = {
             // maze0
             {
@@ -71,45 +31,45 @@ namespace LabyrinthAStar
                 { 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
                 { 1, 1, 1, 0, 1, 0, 1, 1, 0, 1 },
                 { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
-                { 1, 0, 1, 0, 1, 1, 1, 1, 0, 1 },
-                { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
+                { 1, 0, 1, 0, 1, 0, 1, 1, 0, 1 },
+                { 1, 0, 1, 0, 0, 0, 1, 0, 0, 1 },
                 { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
-                { 1, 0, 1, 0, 0, 0, 1, 1, 1, 1 },
+                { 1, 0, 1, 0, 0, 0, 1, 0, 1, 1 },
                 { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
                 { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }
             },
             // maze1
             {
                 { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
-            },
-            // maze0
-            {
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
                 { 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
                 { 1, 1, 1, 0, 1, 0, 1, 1, 0, 1 },
-                { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
-                { 1, 0, 1, 0, 1, 1, 1, 1, 0, 1 },
-                { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
-                { 1, 0, 1, 0, 0, 0, 1, 1, 1, 1 },
+                { 1, 0, 0, 0, 1, 0, 1, 0, 0, 1 },
+                { 1, 0, 1, 1, 1, 0, 1, 1, 1, 1 },
+                { 1, 0, 1, 0, 0, 0, 0, 0, 1, 1 },
+                { 1, 0, 1, 1, 1, 1, 1, 0, 0, 1 },
+                { 1, 0, 1, 0, 0, 0, 1, 1, 0, 1 },
                 { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1 }
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
+            },
+            // maze2
+            {
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 },
+                { 0, 1, 1, 1, 1, 1, 1, 0, 1, 0 },
+                { 0, 1, 0, 0, 0, 0, 1, 0, 1, 0 },
+                { 0, 1, 0, 1, 1, 0, 1, 0, 1, 0 },
+                { 0, 1, 0, 1, 1, 1, 1, 0, 1, 0 },
+                { 0, 1, 0, 0, 0, 0, 0, 0, 1, 0 },
+                { 0, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
             },
         };
 
         private (int x, int y, int Maze, int targetX, int targetY, int targetMaze)[] teleporters = {
-            (8, 9, 0, 1, 1, 1),  // Телепорт из maze0 в maze1
-            (8, 8, 1, 0, 1, 2),  // Телепорт из maze1 в maze2
-            (8, 1, 2, 0, 1, 0)   // Телепорт из maze2 в maze0
+            (8, 9, 0, 0, 1, 1),  // Телепорт из maze0 в maze1
+            (7, 3, 1, 0, 0, 2),  // Телепорт из maze1 в maze2
+            (5, 5, 2, 0, 1, 0)   // Телепорт из maze2 в maze0
         };
 
         private readonly int[,] maze = {
@@ -181,6 +141,14 @@ namespace LabyrinthAStar
                 g.FillRectangle(Brushes.Blue, currentNode.X * cellSize, currentNode.Y * cellSize, cellSize, cellSize);
             }
 
+            foreach (var teleport in teleporters)
+            {
+                if (teleport.Maze == currentLevel)
+                {
+                    g.FillRectangle(Brushes.Purple, teleport.x * cellSize, teleport.y * cellSize, cellSize, cellSize);
+                }
+            }
+
             // Начальная и конечная точки
             //g.FillRectangle(Brushes.Green, startNode.X * cellSize, startNode.Y * cellSize, cellSize, cellSize);
             //g.FillRectangle(Brushes.Red, endNode.X * cellSize, endNode.Y * cellSize, cellSize, cellSize);
@@ -223,7 +191,8 @@ namespace LabyrinthAStar
 
         private List<Node> FindPath(Node start, Node end)
         {
-            var openList = new List<Node>();
+            var openList = new SortedSet<Node>(Comparer<Node>.Create((a, b) =>
+        a.G == b.G ? (a.X == b.X ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X)) : a.G.CompareTo(b.G)));
             var closedList = new HashSet<Node>();
 
             start.G = 0;
@@ -232,8 +201,8 @@ namespace LabyrinthAStar
             while (openList.Count > 0)
             {
                 // Находим узел с наименьшей стоимостью G
-                openList.Sort((node1, node2) => node1.G.CompareTo(node2.G));
-                var currentNode = openList[0];
+                var currentNode = openList.Min;
+                openList.Remove(currentNode);
 
                 // Если достигли цели, восстанавливаем путь
                 if (currentNode.X == end.X && currentNode.Y == end.Y)
@@ -241,7 +210,6 @@ namespace LabyrinthAStar
                     return ReconstructPath(currentNode);
                 }
 
-                openList.Remove(currentNode);
                 closedList.Add(currentNode);
 
                 // Получаем соседей
@@ -254,16 +222,17 @@ namespace LabyrinthAStar
 
                     if (!openList.Contains(neighbor))
                     {
+                        neighbor.Parent = currentNode;
+                        neighbor.G = tentativeGScore;
                         openList.Add(neighbor);
                     }
                     else if (tentativeGScore >= neighbor.G)
                     {
-                        continue;
+                        openList.Remove(neighbor);
+                        neighbor.G = tentativeGScore;
+                        neighbor.Parent = currentNode;
+                        openList.Add(neighbor);
                     }
-
-                    // Обновляем данные узла
-                    neighbor.Parent = currentNode;
-                    neighbor.G = tentativeGScore;
                 }
             }
 
